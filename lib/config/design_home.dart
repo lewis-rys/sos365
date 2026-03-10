@@ -3,8 +3,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 /// ===== COLORES Y ESTILOS =====
 class PanicColors {
-  static const background = Color(0xFFF1F1F1); // Fondo general
-  static const primary = Color(0xFF8B0000); // Rojo principal
+  static const background = Color(0xFFF1F1F1);
+  static const primary = Color(0xFF8B0000);
   static const primaryDark = Color(0xFF6A1B1B);
   static const primaryLight = Color(0xFFB71C1C);
   static const accent = Color(0xFFFF0000);
@@ -80,14 +80,14 @@ class PanicDecorations {
     ],
   );
 
-  /// Animación pulsante para botones de emergencia
+  /// ===== ANIMACIÓN PULSANTE SUAVE (EMERGENCIA) =====
   static Animate emergencyPulse(Widget child) {
     return child
         .animate(onPlay: (controller) => controller.repeat(reverse: true))
         .scale(
-          begin: const Offset(1, 1),
-          end: const Offset(1.1, 1.1),
-          duration: 600.ms,
+          begin: const Offset(1.0, 1.0),
+          end: const Offset(1.03, 1.03), // 🔹 MUY sutil
+          duration: 1200.ms,
           curve: Curves.easeInOut,
         );
   }

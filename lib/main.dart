@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'color.dart';
-import 'seguridad/iniciarsesion.dart'; // <- apuntando a la nueva interfaz
+import 'config/design_home.dart';
+import 'screens/auth/iniciarsesion.dart'; // <- apuntando a la nueva interfaz
 
 void main() {
   runApp(const PanicApp());

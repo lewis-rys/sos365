@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'desing.dart';
+import '../config/design_auth.dart';
 
 /// ===== FUNCIONES DE NAVEGACIÓN =====
 

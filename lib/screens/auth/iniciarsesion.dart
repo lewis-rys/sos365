@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import './desing.dart';
-import './eventos.dart';
-import './crearcuenta.dart';
-import '../estructura.dart';
+import '../../config/design_auth.dart';
+import '../../utils/eventos_auth.dart';
+import 'crearcuenta.dart';
+import '../home/home.dart';
 
 class IniciarSesionScreen extends StatelessWidget {
   const IniciarSesionScreen({super.key});
@@ -41,7 +41,7 @@ class IniciarSesionScreen extends StatelessWidget {
                     ),
                     child: Center(
                       child: Image.asset(
-                        'lib/assets/images/16437dias.jpeg',
+                        'lib/assets/images/sos365.png',
                         width: 50,
                         height: 50,
                         fit: BoxFit.contain,

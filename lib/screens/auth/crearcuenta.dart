@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
-import './desing.dart';
-import './eventos.dart';
-import './iniciarsesion.dart';
+import '../../config/design_auth.dart';
+import '../../utils/eventos_auth.dart';
+import 'iniciarsesion.dart';
 
-class CrearCuentaScreen extends StatelessWidget {
+class CrearCuentaScreen extends StatefulWidget {
   const CrearCuentaScreen({super.key});
+
+  @override
+  State<CrearCuentaScreen> createState() => _CrearCuentaScreenState();
+}
+
+class _CrearCuentaScreenState extends State<CrearCuentaScreen> {
+  DateTime? _fechaseleccionada;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: PanicColors.background, // mismo fondo
+      backgroundColor: PanicColors.background,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -17,7 +24,7 @@ class CrearCuentaScreen extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(25),
               decoration: BoxDecoration(
-                color: PanicColors.peach, // contenedor igual
+                color: PanicColors.peach,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: const [
                   BoxShadow(
@@ -30,7 +37,7 @@ class CrearCuentaScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Ícono de alerta
+                  // Ícono
                   Container(
                     width: 80,
                     height: 80,
@@ -40,15 +47,14 @@ class CrearCuentaScreen extends StatelessWidget {
                     ),
                     child: Center(
                       child: Image.asset(
-                        'lib/assets/images/16437dias.jpeg',
+                        'lib/assets/images/sos365.png',
                         width: 50,
                         height: 50,
-                        fit: BoxFit.contain,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
 
+                  const SizedBox(height: 20),
                   const Text("CREAR CUENTA", style: PanicTextStyles.title),
                   const SizedBox(height: 30),
 
@@ -57,19 +63,49 @@ class CrearCuentaScreen extends StatelessWidget {
                   buildInputField("Correo electrónico:"),
                   const SizedBox(height: 20),
                   buildInputField("Contraseña:", obscureText: true),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 30),
 
-                  // Botón para registrarse
+                  // Botón fecha
+                  ElevatedButton(
+                    onPressed: () async {
+                      DateTime? fecha = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime(1900),
+                        lastDate: DateTime(2100),
+                      );
+
+                      if (fecha != null) {
+                        setState(() {
+                          _fechaseleccionada = fecha;
+                        });
+                      }
+                    },
+                    child: const Text("Seleccionar fecha de cumpleaños"),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  Text(
+                    _fechaseleccionada != null
+                        ? '${_fechaseleccionada!.day}/${_fechaseleccionada!.month}/${_fechaseleccionada!.year}'
+                        : 'No se ha seleccionado fecha',
+                    style: PanicTextStyles.subtitle,
+                  ),
+
+                  const SizedBox(height: 30),
+
+                  // Botón registrarse
                   ElevatedButton(
                     onPressed: () =>
                         navigateTo(context, const IniciarSesionScreen()),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: PanicColors.primary,
+                      minimumSize: const Size(double.infinity, 50),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                         side: const BorderSide(color: Colors.black87, width: 2),
                       ),
-                      minimumSize: const Size(double.infinity, 50),
                     ),
                     child: const Text(
                       "REGISTRARSE",
@@ -98,7 +134,7 @@ class CrearCuentaScreen extends StatelessWidget {
             fillColor: Colors.white,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Colors.black87, width: 1),
+              borderSide: const BorderSide(color: Colors.black87),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),

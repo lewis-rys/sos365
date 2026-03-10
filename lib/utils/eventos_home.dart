@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'color.dart';
-import 'seguridad/iniciarsesion.dart';
-import 'seguridad/eventos.dart'; // para navigateToReplacement
+import '../config/design_home.dart';
+import '../screens/auth/iniciarsesion.dart';
+import 'eventos_auth.dart'; // para navigateToReplacement
 
 /// ===== FUNCIONES DE EMERGENCIA =====
 Future<void> makeCall(String number) async {
@@ -336,63 +336,199 @@ class ContactModal extends StatelessWidget {
         "parentesco": "Hermano",
         "telefono": "555-345-6789",
       },
-      {
-        "titulo": "Amiga Ana",
-        "correo": "ana.martinez@email.com",
-        "nombre": "Ana",
-        "apellido": "Martínez",
-        "parentesco": "Amiga",
-        "telefono": "555-456-7890",
-      },
-      {
-        "titulo": "Tío Luis",
-        "correo": "luis.hernandez@email.com",
-        "nombre": "Luis",
-        "apellido": "Hernández",
-        "parentesco": "Tío",
-        "telefono": "555-567-8901",
-      },
     ];
 
     return modalBase(
-      title: "Contactos",
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: contactos.map((contacto) {
-          return ExpansionTile(
-            title: Text(
-              contacto["titulo"]!,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            children: [
-              _infoRow(Icons.email, "Correo", contacto["correo"]!),
-              _infoRow(Icons.person, "Nombre", contacto["nombre"]!),
-              _infoRow(Icons.person_outline, "Apellido", contacto["apellido"]!),
-              _infoRow(
-                Icons.family_restroom,
-                "Parentesco",
-                contacto["parentesco"]!,
+      title: "Contactos de emergencia",
+      child: SizedBox(
+        height: 450,
+        child: Column(
+          children: [
+            /// ===== AGREGAR CONTACTO =====
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.add),
+                label: const Text("Agregar contacto"),
+                onPressed: () => _openContactForm(context),
               ),
-              _infoRow(Icons.phone, "Teléfono", contacto["telefono"]!),
-              const SizedBox(height: 10),
-            ],
-          );
-        }).toList(),
+            ),
+
+            const SizedBox(height: 12),
+
+            /// ===== LISTA =====
+            Expanded(
+              child: ListView.separated(
+                itemCount: contactos.length,
+                separatorBuilder: (_, __) => const Divider(),
+                itemBuilder: (context, index) {
+                  final c = contactos[index];
+
+                  return ExpansionTile(
+                    leading: CircleAvatar(child: Text(c["titulo"]![0])),
+                    title: Text(
+                      c["titulo"]!,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(c["parentesco"]!),
+                    childrenPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    children: [
+                      _infoRow(
+                        Icons.person,
+                        "Nombre",
+                        "${c["nombre"]} ${c["apellido"]}",
+                      ),
+                      _infoRow(Icons.email, "Correo", c["correo"]!),
+                      _infoRow(Icons.phone, "Teléfono", c["telefono"]!),
+
+                      const SizedBox(height: 10),
+
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton.icon(
+                            icon: const Icon(Icons.edit),
+                            label: const Text("Editar"),
+                            onPressed: () =>
+                                _openContactForm(context, contacto: c),
+                          ),
+                          TextButton.icon(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            label: const Text(
+                              "Eliminar",
+                              style: TextStyle(color: Colors.red),
+                            ),
+                            onPressed: () =>
+                                _confirmDelete(context, c["titulo"]!),
+                          ),
+                        ],
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
       onSave: () => Navigator.pop(context),
     );
   }
 
+  /// ===== FORM AGREGAR / EDITAR =====
+  void _openContactForm(BuildContext context, {Map<String, String>? contacto}) {
+    showDialog(
+      context: context,
+      builder: (_) {
+        final isEdit = contacto != null;
+
+        final nombreCtrl = TextEditingController(
+          text: contacto?["nombre"] ?? "",
+        );
+        final apellidoCtrl = TextEditingController(
+          text: contacto?["apellido"] ?? "",
+        );
+        final correoCtrl = TextEditingController(
+          text: contacto?["correo"] ?? "",
+        );
+        final telefonoCtrl = TextEditingController(
+          text: contacto?["telefono"] ?? "",
+        );
+        final parentescoCtrl = TextEditingController(
+          text: contacto?["parentesco"] ?? "",
+        );
+
+        return AlertDialog(
+          title: Text(isEdit ? "Editar contacto" : "Agregar contacto"),
+          content: SingleChildScrollView(
+            child: Column(
+              children: [
+                _input(nombreCtrl, "Nombre"),
+                _input(apellidoCtrl, "Apellido"),
+                _input(parentescoCtrl, "Parentesco"),
+                _input(correoCtrl, "Correo electrónico"),
+                _input(telefonoCtrl, "Teléfono"),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text("Cancelar"),
+              onPressed: () => Navigator.pop(context),
+            ),
+            ElevatedButton(
+              child: const Text("Guardar"),
+              onPressed: () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      isEdit
+                          ? "Cambios no guardados (demo)"
+                          : "Contacto agregado (demo)",
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// ===== CONFIRMAR ELIMINAR =====
+  void _confirmDelete(BuildContext context, String nombre) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Eliminar contacto"),
+        content: Text("¿Seguro que deseas eliminar a $nombre?"),
+        actions: [
+          TextButton(
+            child: const Text("Cancelar"),
+            onPressed: () => Navigator.pop(context),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text("Eliminar"),
+            onPressed: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Contacto eliminado (demo)")),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// ===== INPUT =====
+  Widget _input(TextEditingController controller, String label) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: TextField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
+        ),
+      ),
+    );
+  }
+
   Widget _infoRow(IconData icon, String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          Icon(icon, size: 20),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text("$label: $value", style: const TextStyle(fontSize: 14)),
-          ),
+          Icon(icon, size: 18),
+          const SizedBox(width: 8),
+          Expanded(child: Text("$label: $value")),
         ],
       ),
     );
