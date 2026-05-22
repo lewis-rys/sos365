@@ -3,12 +3,12 @@ import '../config/design_auth.dart';
 
 /// ===== FUNCIONES DE NAVEGACIÓN =====
 
-/// Navega a otra pantalla (push normal)
+/// Navega a otra pantalla
 void navigateTo(BuildContext context, Widget screen) {
   Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
 }
 
-/// Navega a otra pantalla reemplazando la actual
+/// Navega reemplazando la pantalla actual
 void navigateToReplacement(BuildContext context, Widget screen) {
   Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => screen));
 }
@@ -27,48 +27,50 @@ void openModal(BuildContext context, Widget content) {
   );
 }
 
-/// Modal base genérico
+/// ===== MODAL BASE =====
+
 Widget modalBase({
   required String title,
   required Widget child,
   VoidCallback? onSave,
 }) {
-  return Container(
-    padding: const EdgeInsets.all(20),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(25),
-      boxShadow: const [
-        BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 5)),
-      ],
-    ),
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 20),
-        child,
-        if (onSave != null) ...[
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: onSave,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: PanicColors.primary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              minimumSize: const Size(double.infinity, 45),
-            ),
-            child: const Text(
-              "Aceptar",
-              style: PanicTextStyles.modalButtonText,
-            ),
+  return PanicDecorations.fadeIn(
+    Container(
+      padding: const EdgeInsets.all(22),
+      decoration: PanicDecorations.card,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          /// TITULO
+          Text(
+            title,
+            style: PanicTextStyles.title,
+            textAlign: TextAlign.center,
           ),
+
+          const SizedBox(height: 20),
+
+          /// CONTENIDO
+          child,
+
+          /// BOTÓN OPCIONAL
+          if (onSave != null) ...[
+            const SizedBox(height: 20),
+
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: onSave,
+                style: PanicDecorations.primaryButton,
+                child: const Text(
+                  "Aceptar",
+                  style: PanicTextStyles.buttonTitle,
+                ),
+              ),
+            ),
+          ],
         ],
-      ],
+      ),
     ),
   );
 }

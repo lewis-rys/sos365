@@ -1,25 +1,57 @@
 import 'package:flutter/material.dart';
-import 'config/design_home.dart';
-import 'screens/auth/iniciarsesion.dart'; // <- apuntando a la nueva interfaz
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  runApp(const PanicApp());
+import 'services/mongodb_service.dart';
+import 'screens/auth/iniciarsesion.dart';
+import 'screens/home/home.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  /// Conectar MongoDB
+  await MongoService.connect();
+
+  runApp(const MyApp());
 }
 
-class PanicApp extends StatelessWidget {
-  const PanicApp({super.key});
+class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  Widget pantallaInicial = const Scaffold(
+    body: Center(child: CircularProgressIndicator()),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    verificarSesion();
+  }
+
+  Future<void> verificarSesion() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    String? correo = prefs.getString("correo");
+
+    setState(() {
+      if (correo != null) {
+        pantallaInicial = const PanicButtonScreen();
+      } else {
+        pantallaInicial = const IniciarSesion();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        scaffoldBackgroundColor: PanicColors.background,
-        colorSchemeSeed: PanicColors.primary,
-      ),
-      home:
-          const IniciarSesionScreen(), // <- ejecuta la pantalla de inicio de sesión
+
+      home: pantallaInicial,
     );
   }
 }
