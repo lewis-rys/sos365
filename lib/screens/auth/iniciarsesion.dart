@@ -1,116 +1,261 @@
 import 'package:flutter/material.dart';
-import '../../config/design_auth.dart';
-import '../../utils/eventos_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sos365/services/mongodb_service.dart';
+import 'package:sos365/screens/home/home.dart';
+import 'package:sos365/config/design_auth.dart';
 import 'crearcuenta.dart';
-import '../home/home.dart';
+import 'recuperarcuenta.dart'; // Asegúrate de tener esta pantalla creada
 
-class IniciarSesionScreen extends StatelessWidget {
-  const IniciarSesionScreen({super.key});
+class IniciarSesion extends StatefulWidget {
+  const IniciarSesion({super.key});
 
+  @override
+  State<IniciarSesion> createState() => _IniciarSesionState();
+}
+
+class _IniciarSesionState extends State<IniciarSesion>
+    with SingleTickerProviderStateMixin {
+  final correoController = TextEditingController();
+  final passwordController = TextEditingController();
+
+  bool cargando = false;
+  bool verPassword = false;
+
+  late final AnimationController _controller;
+  late final Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+    _scaleAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutBack,
+    );
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    correoController.dispose();
+    passwordController.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  /// ================= INICIAR SESIÓN =================
+  Future<void> iniciarSesion() async {
+    if (correoController.text.isEmpty || passwordController.text.isEmpty) {
+      mostrarError("Completa todos los campos");
+      return;
+    }
+
+    setState(() {
+      cargando = true;
+    });
+
+    try {
+      var usuario = await MongoService.usuarios!.findOne({
+        "correo": correoController.text.trim(),
+      });
+
+      if (usuario == null) {
+        mostrarError("El correo no está registrado");
+        setState(() => cargando = false);
+        return;
+      }
+
+      if (usuario["contrasena"] != passwordController.text.trim()) {
+        mostrarError("Contraseña incorrecta");
+        setState(() => cargando = false);
+        return;
+      }
+
+      final prefs = await SharedPreferences.getInstance();
+
+      // 🔥 ÚNICO CAMBIO: guardar usuario_id
+      await prefs.setString("usuario_id", usuario["_id"].toHexString());
+
+      await prefs.setString("correo", usuario["correo"]);
+      await prefs.setString("nombre", usuario["nombre_usuario"]);
+
+      if (!mounted) return;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const PanicButtonScreen()),
+      );
+    } catch (e) {
+      mostrarError("Error al iniciar sesión");
+    }
+
+    setState(() {
+      cargando = false;
+    });
+  }
+
+  void mostrarError(String mensaje) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(mensaje)));
+  }
+
+  /// ================= INPUT FIELD =================
+  Widget buildInputField(
+    String label,
+    TextEditingController controller, {
+    bool obscureText = false,
+    bool password = false,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: PanicTextStyles.inputLabel),
+        const SizedBox(height: 6),
+        TextField(
+          controller: controller,
+          obscureText: password ? !verPassword : obscureText,
+          decoration: PanicDecorations.inputDecoration(label).copyWith(
+            suffixIcon: password
+                ? IconButton(
+                    icon: Icon(
+                      verPassword ? Icons.visibility_off : Icons.visibility,
+                      color: PanicColors.primary,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        verPassword = !verPassword;
+                      });
+                    },
+                  )
+                : null,
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  /// ================= UI =================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: PanicColors.background,
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 40),
-            child: Container(
-              padding: const EdgeInsets.all(25),
-              decoration: BoxDecoration(
-                color: PanicColors.peach,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 10,
-                    offset: Offset(0, 5),
-                  ),
-                ],
-              ),
+      backgroundColor: Colors.grey.withOpacity(0.3), // Gris semitransparente
+      body: Center(
+        child: ScaleTransition(
+          scale: _scaleAnimation,
+          child: Container(
+            width: 360,
+            padding: const EdgeInsets.all(28),
+            decoration: BoxDecoration(
+              color: PanicColors.peach, // Fondo del modal
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: PanicColors.primary, width: 2),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black45,
+                  blurRadius: 25,
+                  offset: Offset(0, 10),
+                ),
+              ],
+            ),
+            child: SingleChildScrollView(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Logo o ícono de alerta
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: const BoxDecoration(
-                      color: PanicColors.primary,
-                      shape: BoxShape.circle,
+                  Image.asset(
+                    'lib/assets/images/sos365red.png',
+                    width: 120,
+                    height: 120,
+                    fit: BoxFit.contain,
+                  ),
+                  const SizedBox(height: 20),
+
+                  const Text("Iniciar Sesión", style: PanicTextStyles.title),
+                  const SizedBox(height: 25),
+
+                  buildInputField("Correo", correoController),
+                  buildInputField(
+                    "Contraseña",
+                    passwordController,
+                    password: true,
+                  ),
+
+                  const SizedBox(height: 25),
+
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(255, 213, 0, 0),
+                        minimumSize: const Size(double.infinity, 50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: cargando ? null : iniciarSesion,
+                      child: cargando
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text(
+                              "Entrar",
+                              style: PanicTextStyles.buttonTitle,
+                            ),
                     ),
-                    child: Center(
-                      child: Image.asset(
-                        'lib/assets/images/sos365.png',
-                        width: 50,
-                        height: 50,
-                        fit: BoxFit.contain,
+                  ),
+
+                  const SizedBox(height: 15),
+
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: PanicColors.primary),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const CrearCuenta(),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        "Crear cuenta",
+                        style: TextStyle(
+                          color: PanicColors.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
 
-                  const Text(
-                    "CONFIRMAR IDENTIDAD",
-                    style: PanicTextStyles.title,
-                  ),
-                  const SizedBox(height: 30),
-
-                  buildInputField("Usuario:"),
-                  const SizedBox(height: 20),
-                  buildInputField("Contraseña:", obscureText: true),
                   const SizedBox(height: 10),
 
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const RecuperarCuenta(),
+                          ),
+                        );
+                      },
                       child: const Text(
-                        "OLVIDÉ MI CONTRASEÑA",
+                        "Recuperar contraseña",
                         style: TextStyle(
-                          color: Colors.black87,
-                          fontSize: 12,
+                          color: PanicColors.primary,
+                          fontWeight: FontWeight.bold,
                           decoration: TextDecoration.underline,
                         ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  ElevatedButton(
-                    onPressed: () => navigateToReplacement(
-                      context,
-                      const PanicButtonScreen(),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: PanicColors.primary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: const BorderSide(color: Colors.black87, width: 2),
-                      ),
-                      minimumSize: const Size(double.infinity, 50),
-                    ),
-                    child: const Text(
-                      "INGRESAR",
-                      style: PanicTextStyles.buttonTitle,
-                    ),
-                  ),
-                  const SizedBox(height: 15),
-
-                  ElevatedButton(
-                    onPressed: () =>
-                        navigateTo(context, const CrearCuentaScreen()),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: PanicColors.primaryLight,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: const BorderSide(color: Colors.black87, width: 2),
-                      ),
-                      minimumSize: const Size(double.infinity, 50),
-                    ),
-                    child: const Text(
-                      "CREAR CUENTA",
-                      style: PanicTextStyles.buttonTitle,
                     ),
                   ),
                 ],
@@ -119,34 +264,6 @@ class IniciarSesionScreen extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-
-  Widget buildInputField(String label, {bool obscureText = false}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: PanicTextStyles.inputLabel),
-        const SizedBox(height: 5),
-        TextField(
-          obscureText: obscureText,
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: Colors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Colors.black87, width: 1),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(
-                color: PanicColors.primaryDark,
-                width: 2,
-              ),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
