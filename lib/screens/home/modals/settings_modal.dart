@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'dart:io'; // ✅ Para detectar la plataforma
 import 'package:sos365/config/design_home.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,7 +17,7 @@ class _SettingsModalState extends State<SettingsModal> {
   bool camara = false;
   bool microfono = false;
   bool almacenamiento = false;
-  bool telefono = false;
+  bool telefono = false; // ✅ Solo se usa en Android
   bool ubicacion = false;
 
   @override
@@ -24,18 +26,20 @@ class _SettingsModalState extends State<SettingsModal> {
     verificarPermisos();
   }
 
-  /// ================= VERIFICAR PERMISOS =================
   Future<void> verificarPermisos() async {
     camara = await Permission.camera.isGranted;
     microfono = await Permission.microphone.isGranted;
     almacenamiento = await Permission.photos.isGranted;
-    telefono = await Permission.phone.isGranted;
     ubicacion = await Permission.location.isGranted;
+
+    // ✅ Permission.phone solo existe en Android
+    if (Platform.isAndroid) {
+      telefono = await Permission.phone.isGranted;
+    }
 
     setState(() {});
   }
 
-  /// ================= SOLICITAR PERMISO =================
   Future<void> solicitarPermiso(
     Permission permiso,
     Function(bool) actualizar,
@@ -43,19 +47,14 @@ class _SettingsModalState extends State<SettingsModal> {
     final status = await permiso.request();
 
     if (status.isGranted) {
-      setState(() {
-        actualizar(true);
-      });
+      setState(() => actualizar(true));
     } else if (status.isPermanentlyDenied) {
       openAppSettings();
     } else {
-      setState(() {
-        actualizar(false);
-      });
+      setState(() => actualizar(false));
     }
   }
 
-  /// ================= ITEM PERMISO =================
   Widget permisoItem(
     String titulo,
     bool valor,
@@ -65,19 +64,14 @@ class _SettingsModalState extends State<SettingsModal> {
     return SwitchListTile(
       title: Text(titulo, style: PanicTextStyles.inputLabel),
       value: valor,
-      onChanged: (v) {
-        solicitarPermiso(permiso, actualizar);
-      },
+      onChanged: (v) => solicitarPermiso(permiso, actualizar),
       activeColor: PanicColors.primary,
       contentPadding: const EdgeInsets.symmetric(horizontal: 12),
     );
   }
 
-  /// ================= CERRAR SESION =================
   Future<void> cerrarSesion(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
-
-    // 🔥 ACTUALIZADO (ObjectId + nueva sesión)
     await prefs.remove("usuario_id");
     await prefs.remove("correo");
     await prefs.remove("nombre");
@@ -90,7 +84,6 @@ class _SettingsModalState extends State<SettingsModal> {
     );
   }
 
-  /// ================= UI =================
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -114,36 +107,39 @@ class _SettingsModalState extends State<SettingsModal> {
                 "Cámara",
                 camara,
                 Permission.camera,
-                (valor) => camara = valor,
+                (v) => camara = v,
               ),
               permisoItem(
                 "Micrófono",
                 microfono,
                 Permission.microphone,
-                (valor) => microfono = valor,
+                (v) => microfono = v,
               ),
               permisoItem(
-                "Almacenamiento",
+                "Fotos / Almacenamiento",
                 almacenamiento,
                 Permission.photos,
-                (valor) => almacenamiento = valor,
-              ),
-              permisoItem(
-                "Teléfono",
-                telefono,
-                Permission.phone,
-                (valor) => telefono = valor,
+                (v) => almacenamiento = v,
               ),
               permisoItem(
                 "Ubicación",
                 ubicacion,
                 Permission.location,
-                (valor) => ubicacion = valor,
+                (v) => ubicacion = v,
               ),
+
+              // ✅ Permiso de teléfono solo visible en Android
+              if (Platform.isAndroid)
+                permisoItem(
+                  "Teléfono",
+                  telefono,
+                  Permission.phone,
+                  (v) => telefono = v,
+                ),
 
               const SizedBox(height: 20),
 
-              /// BOTON CERRAR SESION
+              // BOTÓN CERRAR SESIÓN
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -151,70 +147,64 @@ class _SettingsModalState extends State<SettingsModal> {
                   onPressed: () {
                     showDialog(
                       context: context,
-                      builder: (context) {
-                        return Dialog(
-                          shape: RoundedRectangleBorder(
+                      builder: (context) => Dialog(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(16),
                           ),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            padding: const EdgeInsets.all(20),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Text(
-                                  "Cerrar sesión",
-                                  style: PanicTextStyles.title,
-                                ),
-                                const SizedBox(height: 15),
-                                const Text(
-                                  "¿Seguro que deseas cerrar tu sesión?",
-                                  style: PanicTextStyles.subtitle,
-                                ),
-                                const SizedBox(height: 20),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    OutlinedButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      style: OutlinedButton.styleFrom(
-                                        side: const BorderSide(
-                                          color: PanicColors.primary,
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                        ),
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text(
+                                "Cerrar sesión",
+                                style: PanicTextStyles.title,
+                              ),
+                              const SizedBox(height: 15),
+                              const Text(
+                                "¿Seguro que deseas cerrar tu sesión?",
+                                style: PanicTextStyles.subtitle,
+                              ),
+                              const SizedBox(height: 20),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  OutlinedButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    style: OutlinedButton.styleFrom(
+                                      side: const BorderSide(
+                                        color: PanicColors.primary,
                                       ),
-                                      child: const Text(
-                                        "Cancelar",
-                                        style: TextStyle(
-                                          color: PanicColors.primary,
-                                        ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
                                       ),
                                     ),
-                                    ElevatedButton(
-                                      style: PanicDecorations.primaryButton,
-                                      onPressed: () {
-                                        cerrarSesion(context);
-                                      },
-                                      child: const Text(
-                                        "Cerrar sesión",
-                                        style: PanicTextStyles.buttonTitle,
+                                    child: const Text(
+                                      "Cancelar",
+                                      style: TextStyle(
+                                        color: PanicColors.primary,
                                       ),
                                     ),
-                                  ],
-                                ),
-                              ],
-                            ),
+                                  ),
+                                  ElevatedButton(
+                                    style: PanicDecorations.primaryButton,
+                                    onPressed: () => cerrarSesion(context),
+                                    child: const Text(
+                                      "Cerrar sesión",
+                                      style: PanicTextStyles.buttonTitle,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
-                        );
-                      },
+                        ),
+                      ),
                     );
                   },
                   child: const Text(
@@ -226,7 +216,7 @@ class _SettingsModalState extends State<SettingsModal> {
 
               const SizedBox(height: 10),
 
-              /// BOTON CONTINUAR
+              // BOTÓN CONTINUAR
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(
@@ -236,9 +226,7 @@ class _SettingsModalState extends State<SettingsModal> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
+                  onPressed: () => Navigator.pop(context),
                   child: const Text(
                     "Continuar",
                     style: TextStyle(

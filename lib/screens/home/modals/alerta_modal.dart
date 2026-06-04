@@ -38,9 +38,8 @@ class _AlertaModalState extends State<AlertaModal> {
   bool cargando = true;
   bool alertaEnviada = false;
   String? errorAlerta;
-  String mensajeCarga = "Iniciando protocolo..."; // Mensaje dinámico
+  String mensajeCarga = "Iniciando protocolo...";
 
-  // ✅ NUEVO: lista de correos a los que se envió la alerta
   List<String> correosNotificados = [];
 
   CameraController? _cameraController;
@@ -118,6 +117,20 @@ class _AlertaModalState extends State<AlertaModal> {
         mensajeCarga = "Obteniendo ubicación...";
       });
 
+      // ✅ iOS requiere solicitar permisos de ubicación explícitamente
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw Exception("Permiso de ubicación denegado.");
+        }
+      }
+      if (permission == LocationPermission.deniedForever) {
+        throw Exception(
+          "Permiso de ubicación bloqueado. Actívalo en Configuración.",
+        );
+      }
+
       final coords = await _obtenerCoordenadas();
       final userId = await _obtenerUsuarioId();
 
@@ -139,7 +152,6 @@ class _AlertaModalState extends State<AlertaModal> {
       frontCam ??= cams.length > 1 ? cams[1] : cams.first;
       backCam ??= cams.first;
 
-      // --- CAPTURA DE MEDIOS ---
       setState(() => mensajeCarga = "Capturando foto frontal...");
       final fotoFrontal = await _capturarFoto(frontCam, "front.jpg");
 
@@ -149,7 +161,6 @@ class _AlertaModalState extends State<AlertaModal> {
       setState(() => mensajeCarga = "Grabando video y audio (4s)...");
       final videoTrasera = await _capturarVideoConAudio(backCam);
 
-      // --- SUBIDA A MONGO ---
       setState(() => mensajeCarga = "Sincronizando con el servidor...");
       await MongoService.ensureConnected();
 
@@ -178,7 +189,6 @@ class _AlertaModalState extends State<AlertaModal> {
         "audio_id": uploadResults[4],
       };
 
-      // Preparar visualización
       if (videoTrasera.isNotEmpty) {
         _videoBack = VideoPlayerController.file(File(videoTrasera))
           ..initialize().then((_) {
@@ -186,8 +196,9 @@ class _AlertaModalState extends State<AlertaModal> {
           });
       }
 
+      // ✅ Fix: usar DeviceFileSource (compatible Android e iOS)
       if (audioPath != null && audioPath!.isNotEmpty) {
-        await _audioPlayer.setSourceDeviceFile(audioPath!);
+        await _audioPlayer.setSource(audioplayers.DeviceFileSource(audioPath!));
       }
 
       widget.alertaData.clear();
@@ -199,7 +210,6 @@ class _AlertaModalState extends State<AlertaModal> {
         "estado": "pendiente",
       });
 
-      // ✅ ENVÍO DE ALERTA Y CORREOS
       setState(() => mensajeCarga = "Enviando alertas a tus contactos...");
       await _enviarAlertaYCorreos(userId);
 
@@ -223,17 +233,14 @@ class _AlertaModalState extends State<AlertaModal> {
   Future<void> _enviarAlertaYCorreos(String userId) async {
     await MongoService.ensureConnected();
 
-    // 1. Guardar en MongoDB
     await MongoService.alertas!.insertOne(widget.alertaData);
 
-    // 2. Buscar contactos del usuario
     if (MongoService.contactos != null) {
       final contactos = await MongoService.contactos!
           .find(where.eq("usuario_id", ObjectId.fromHexString(userId)))
           .toList();
 
       if (contactos.isNotEmpty) {
-        // ✅ Los correos están dentro del array "contactos" de cada documento
         final correos = <String>[];
         for (final doc in contactos) {
           final lista = doc["contactos"];
@@ -247,7 +254,6 @@ class _AlertaModalState extends State<AlertaModal> {
           }
         }
 
-        // ✅ Guardar correos para mostrarlos en la UI
         if (mounted) {
           setState(() {
             correosNotificados = correos;
@@ -258,17 +264,14 @@ class _AlertaModalState extends State<AlertaModal> {
           await _enviarCorreo(correos);
         } catch (e) {
           debugPrint("Error en envío de email: $e");
-          // No lanzamos error aquí para permitir que el modal se cierre aunque el mail falle
         }
       }
     }
   }
 
-  /// ✅ ACTUALIZADO: Envío via SMTP Brevo (reemplaza la API REST anterior)
   Future<void> _enviarCorreo(List<String> correos) async {
     if (correos.isEmpty) return;
 
-    // ── Credenciales SMTP Brevo ──────────────────────────────────────────────
     const smtpHost = 'smtp-relay.brevo.com';
     const smtpPort = 587;
     const smtpUser = 'a6a573001@smtp-brevo.com';
@@ -276,7 +279,6 @@ class _AlertaModalState extends State<AlertaModal> {
         'xsmtpsib-43db2d3d06755dcb974890b04d0569f0400fedafb62a6fb0672a7edc317bebab-ngBTzpqHyfGmHdJV';
     const senderEmail = 'sos365oficial@gmail.com';
     const senderName = 'SOS365';
-    // ────────────────────────────────────────────────────────────────────────
 
     final smtpServer = SmtpServer(
       smtpHost,
@@ -287,7 +289,6 @@ class _AlertaModalState extends State<AlertaModal> {
       allowInsecure: true,
     );
 
-    // Construir adjuntos
     final List<Attachment> attachments = [];
 
     Future<void> addAttachment(String path, String name) async {
@@ -342,6 +343,8 @@ class _AlertaModalState extends State<AlertaModal> {
       cam,
       ResolutionPreset.medium,
       enableAudio: false,
+      // ✅ iOS requiere imageFormatGroup explícito
+      imageFormatGroup: ImageFormatGroup.jpeg,
     );
     await _cameraController!.initialize();
     final pic = await _cameraController!.takePicture();
@@ -358,16 +361,20 @@ class _AlertaModalState extends State<AlertaModal> {
       cam,
       ResolutionPreset.medium,
       enableAudio: true,
+      imageFormatGroup: ImageFormatGroup.jpeg,
     );
     await _cameraController!.initialize();
     final dir = await getTemporaryDirectory();
-    final videoPath = "${dir.path}/back.mp4";
+
+    // ✅ iOS graba en .mov, Android en .mp4 — usamos extensión según plataforma
+    final videoExt = Platform.isIOS ? "mov" : "mp4";
+    final videoPath = "${dir.path}/back.$videoExt";
     final audioPathTemp = "${dir.path}/audio.aac";
 
     await _recorder.startRecorder(toFile: audioPathTemp);
     await _cameraController!.startVideoRecording();
 
-    await Future.delayed(const Duration(seconds: 4)); // Tiempo de grabación
+    await Future.delayed(const Duration(seconds: 4));
 
     await _stopRecorderSafe();
     final videoFile = await _cameraController!.stopVideoRecording();
@@ -429,7 +436,7 @@ class _AlertaModalState extends State<AlertaModal> {
     return "$m:$s";
   }
 
-  // --- UI WIDGETS ---
+  // --- UI WIDGETS (sin cambios) ---
 
   Widget _mapa() {
     if (ubicacion == null) return const SizedBox(height: 150);
@@ -609,7 +616,6 @@ class _AlertaModalState extends State<AlertaModal> {
     );
   }
 
-  // ✅ NUEVO WIDGET: muestra los correos a los que se notificó
   Widget _correosNotificadosWidget() {
     if (correosNotificados.isEmpty) return const SizedBox.shrink();
 
@@ -671,21 +677,16 @@ class _AlertaModalState extends State<AlertaModal> {
 
   @override
   Widget build(BuildContext context) {
-    // Si hay un error, el botón se habilita para cerrar.
-    // Si está cargando, el botón es null (deshabilitado).
-    // Si terminó, el botón se habilita.
-    final VoidCallback? onSaveAction = (cargando)
+    final VoidCallback? onSaveAction = cargando
         ? null
         : () => Navigator.pop(context);
 
     return PopScope(
-      canPop:
-          !cargando, // Evita cerrar el modal con el botón atrás mientras carga
+      canPop: !cargando,
       child: ModalBase(
         title: alertaEnviada
             ? "Alerta Enviada"
             : (errorAlerta != null ? "Error" : "SOS en Proceso"),
-        // El botón en ModalBase se deshabilitará automáticamente si onSave es null
         onSave: onSaveAction ?? () {},
         child: ConstrainedBox(
           constraints: BoxConstraints(
@@ -796,10 +797,7 @@ class _AlertaModalState extends State<AlertaModal> {
                         const SizedBox(height: 12),
                         _audioPlayerWidget(),
                         const SizedBox(height: 12),
-
-                        // ✅ NUEVO: bloque de correos notificados
                         _correosNotificadosWidget(),
-
                         const SizedBox(height: 16),
                         const Text(
                           "Los contactos de emergencia han sido notificados.",
@@ -821,7 +819,7 @@ class _AlertaModalState extends State<AlertaModal> {
   }
 }
 
-// --- WIDGET DE VIDEO REUTILIZABLE ---
+// --- WIDGET DE VIDEO REUTILIZABLE (sin cambios) ---
 class _VideoPlayerWidget extends StatefulWidget {
   final VideoPlayerController controller;
   const _VideoPlayerWidget({required this.controller});
