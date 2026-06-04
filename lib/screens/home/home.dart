@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'modals/alerta_modal.dart';
 import '../auth/iniciarsesion.dart';
 
@@ -37,7 +37,7 @@ class _PanicButtonScreenState extends State<PanicButtonScreen>
   void initState() {
     super.initState();
     cargarUsuario();
-    _mostrarContactosPrimeraVez(); // ✅ Mostrar ContactModal solo la primera vez
+    _mostrarContactosPrimeraVez();
 
     _menuController = AnimationController(
       vsync: this,
@@ -63,8 +63,6 @@ class _PanicButtonScreenState extends State<PanicButtonScreen>
     });
   }
 
-  /// ✅ Muestra ContactModal solo la primera vez que el usuario entra al home.
-  /// El flag se guarda por usuario_id para que funcione con múltiples cuentas.
   Future<void> _mostrarContactosPrimeraVez() async {
     final prefs = await SharedPreferences.getInstance();
     final userId = prefs.getString("usuario_id") ?? "";
@@ -76,8 +74,6 @@ class _PanicButtonScreenState extends State<PanicButtonScreen>
 
     if (!yaSeMostro) {
       await prefs.setBool(flagKey, true);
-
-      // Esperamos a que el widget esté completamente montado antes de abrir el modal
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           openModal(context, const ContactModal());
@@ -97,10 +93,23 @@ class _PanicButtonScreenState extends State<PanicButtonScreen>
     );
   }
 
-  // ✅ Llama al número de emergencia configurado
+  // ✅ Compatible con Android e iOS — abre el marcador con el número precargado
   Future<void> llamarEmergencia() async {
-    const numero = "9221595701";
-    await FlutterPhoneDirectCaller.callNumber(numero);
+    const numero = "911";
+    final uri = Uri(scheme: 'tel', path: numero);
+
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No se pudo iniciar la llamada de emergencia'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   void updateSlider(
@@ -142,7 +151,6 @@ class _PanicButtonScreenState extends State<PanicButtonScreen>
     );
   }
 
-  /// HEADER CON SALUDO
   Widget buildHeader() {
     return PanicDesign.header(nombreUsuario);
   }
@@ -154,7 +162,6 @@ class _PanicButtonScreenState extends State<PanicButtonScreen>
       knobSize: knobSize,
       onDragUpdate: (d) =>
           updateSlider(d, sliderWidth, knobSize, (v) => sliderPosition = v),
-      // ✅ Al completar el desliz → llama al número de emergencia
       onDragEnd: () => handleSliderEnd(
         sliderPosition,
         sliderWidth,
@@ -165,7 +172,6 @@ class _PanicButtonScreenState extends State<PanicButtonScreen>
   }
 
   Widget buildCentralButton() {
-    // ✅ Botón grande mantiene su función: activar alerta SOS
     return PanicDesign.emergencyButton(onLongPress: activarAlerta);
   }
 
@@ -173,11 +179,9 @@ class _PanicButtonScreenState extends State<PanicButtonScreen>
     return PanicDesign.buttonText();
   }
 
-  /// MENÚ FLOTANTE CON ANIMACIÓN E ICONOS Y DISEÑO PERSONALIZADO
   Widget buildFloatingMenu() {
     return Stack(
       children: [
-        // Fondo semi-transparente
         if (isMenuOpen)
           GestureDetector(
             onTap: toggleMenu,
@@ -190,14 +194,12 @@ class _PanicButtonScreenState extends State<PanicButtonScreen>
               ),
             ),
           ),
-        // Botón hamburger y menú
         Positioned(
           bottom: 16,
           right: 16,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              // BOTÓN HAMBURGER CON ESTILO
               GestureDetector(
                 onTap: toggleMenu,
                 child: AnimatedBuilder(
@@ -245,7 +247,6 @@ class _PanicButtonScreenState extends State<PanicButtonScreen>
                 ),
               ),
               const SizedBox(height: 10),
-              // Menú animado
               SizeTransition(
                 sizeFactor: _menuAnimation,
                 axisAlignment: -1,
