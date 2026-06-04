@@ -1,0 +1,38 @@
+workflows:
+  ios-ipa:
+    name: Build iOS IPA
+
+    max_build_duration: 60
+
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+
+    scripts:
+      - name: Limpiar proyecto
+        script: |
+          flutter clean
+
+      - name: Instalar dependencias
+        script: |
+          flutter pub get
+
+      - name: Instalar pods iOS
+        script: |
+          cd ios
+          pod install
+          cd ..
+
+      - name: Generar IPA
+        script: |
+          flutter build ipa --release --no-codesign
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - build/ios/archive/*.xcarchive
+
+    cache:
+      cache_paths:
+        - ~/.pub-cache
+        - ios/Pods
