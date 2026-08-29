@@ -65,29 +65,29 @@
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 
-	<!-- Cámara -->
+
 	<key>NSCameraUsageDescription</key>
 	<string>SOS365 necesita acceso a la cámara para capturar imágenes y videos.</string>
 
-	<!-- Micrófono -->
+
 	<key>NSMicrophoneUsageDescription</key>
 	<string>SOS365 necesita acceso al micrófono para grabar audio.</string>
 
-	<!-- Galería/Fotos -->
+
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>SOS365 necesita acceso a tus fotos para seleccionar imágenes.</string>
 
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>SOS365 necesita permiso para guardar imágenes.</string>
 
-	<!-- Ubicación -->
+
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>SOS365 necesita tu ubicación para servicios y emergencias cercanas.</string>
 
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>SOS365 necesita acceso continuo a tu ubicación para funciones de emergencia.</string>
 
-	<!-- Llamadas telefónicas -->
+
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>tel</string>

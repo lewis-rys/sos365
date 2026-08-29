@@ -117,7 +117,6 @@ class _AlertaModalState extends State<AlertaModal> {
         mensajeCarga = "Obteniendo ubicación...";
       });
 
-      // ✅ iOS requiere solicitar permisos de ubicación explícitamente
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
@@ -196,7 +195,6 @@ class _AlertaModalState extends State<AlertaModal> {
           });
       }
 
-      // ✅ Fix: usar DeviceFileSource (compatible Android e iOS)
       if (audioPath != null && audioPath!.isNotEmpty) {
         await _audioPlayer.setSource(audioplayers.DeviceFileSource(audioPath!));
       }
@@ -274,11 +272,15 @@ class _AlertaModalState extends State<AlertaModal> {
 
     const smtpHost = 'smtp-relay.brevo.com';
     const smtpPort = 587;
-    const smtpUser = 'a6a573001@smtp-brevo.com';
-    const smtpPass =
-        'xsmtpsib-43db2d3d06755dcb974890b04d0569f0400fedafb62a6fb0672a7edc317bebab-ngBTzpqHyfGmHdJV';
+    const smtpUser = String.fromEnvironment('BREVO_SMTP_USER');
+    const smtpPass = String.fromEnvironment('BREVO_SMTP_PASS');
     const senderEmail = 'sos365oficial@gmail.com';
     const senderName = 'SOS365';
+
+    if (smtpUser.isEmpty || smtpPass.isEmpty) {
+      debugPrint('Credenciales SMTP no configuradas');
+      return;
+    }
 
     final smtpServer = SmtpServer(
       smtpHost,
@@ -343,7 +345,6 @@ class _AlertaModalState extends State<AlertaModal> {
       cam,
       ResolutionPreset.medium,
       enableAudio: false,
-      // ✅ iOS requiere imageFormatGroup explícito
       imageFormatGroup: ImageFormatGroup.jpeg,
     );
     await _cameraController!.initialize();
@@ -366,7 +367,6 @@ class _AlertaModalState extends State<AlertaModal> {
     await _cameraController!.initialize();
     final dir = await getTemporaryDirectory();
 
-    // ✅ iOS graba en .mov, Android en .mp4 — usamos extensión según plataforma
     final videoExt = Platform.isIOS ? "mov" : "mp4";
     final videoPath = "${dir.path}/back.$videoExt";
     final audioPathTemp = "${dir.path}/audio.aac";
@@ -436,7 +436,6 @@ class _AlertaModalState extends State<AlertaModal> {
     return "$m:$s";
   }
 
-  // --- UI WIDGETS (sin cambios) ---
 
   Widget _mapa() {
     if (ubicacion == null) return const SizedBox(height: 150);
@@ -819,7 +818,6 @@ class _AlertaModalState extends State<AlertaModal> {
   }
 }
 
-// --- WIDGET DE VIDEO REUTILIZABLE (sin cambios) ---
 class _VideoPlayerWidget extends StatefulWidget {
   final VideoPlayerController controller;
   const _VideoPlayerWidget({required this.controller});

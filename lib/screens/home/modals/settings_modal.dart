@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'dart:io'; // ✅ Para detectar la plataforma
+import 'dart:io';
 import 'package:sos365/config/design_home.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,7 +17,7 @@ class _SettingsModalState extends State<SettingsModal> {
   bool camara = false;
   bool microfono = false;
   bool almacenamiento = false;
-  bool telefono = false; // ✅ Solo se usa en Android
+  bool telefono = false;
   bool ubicacion = false;
 
   @override
@@ -32,7 +32,6 @@ class _SettingsModalState extends State<SettingsModal> {
     almacenamiento = await Permission.photos.isGranted;
     ubicacion = await Permission.location.isGranted;
 
-    // ✅ Permission.phone solo existe en Android
     if (Platform.isAndroid) {
       telefono = await Permission.phone.isGranted;
     }
@@ -128,7 +127,6 @@ class _SettingsModalState extends State<SettingsModal> {
                 (v) => ubicacion = v,
               ),
 
-              // ✅ Permiso de teléfono solo visible en Android
               if (Platform.isAndroid)
                 permisoItem(
                   "Teléfono",
@@ -139,7 +137,6 @@ class _SettingsModalState extends State<SettingsModal> {
 
               const SizedBox(height: 20),
 
-              // BOTÓN CERRAR SESIÓN
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -216,7 +213,6 @@ class _SettingsModalState extends State<SettingsModal> {
 
               const SizedBox(height: 10),
 
-              // BOTÓN CONTINUAR
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(

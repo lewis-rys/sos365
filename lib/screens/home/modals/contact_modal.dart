@@ -143,7 +143,6 @@ class _ContactModalState extends State<ContactModal> {
     }
   }
 
-  /// ================= MODAL VER =================
   void _mostrarMiniModalLectura(Map<String, dynamic> contacto) {
     showDialog(
       context: context,
@@ -174,7 +173,6 @@ class _ContactModalState extends State<ContactModal> {
     );
   }
 
-  /// ================= MODAL EDITAR =================
   void _mostrarMiniModalEdicion({Map<String, dynamic>? contacto, int? index}) {
     final nombre = TextEditingController(text: contacto?["nombre"] ?? "");
     final apellido = TextEditingController(text: contacto?["apellido"] ?? "");
@@ -263,7 +261,6 @@ class _ContactModalState extends State<ContactModal> {
     );
   }
 
-  /// ================= UI PRINCIPAL =================
   @override
   Widget build(BuildContext context) {
     return Dialog(
