@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
-/// ===== COLORES =====
 class PanicColors {
   static const background = Color(0xFFF1F1F1);
   static const primary = Color(0xFF8B0000);
@@ -11,7 +10,6 @@ class PanicColors {
   static const peach = Color.fromARGB(255, 255, 255, 255);
 }
 
-/// ===== TIPOGRAFÍA =====
 class PanicTextStyles {
   static const title = TextStyle(
     fontSize: 26,
@@ -35,7 +33,6 @@ class PanicTextStyles {
   );
 }
 
-/// ===== DECORACIONES =====
 class PanicDecorations {
   static BoxDecoration card = BoxDecoration(
     color: PanicColors.peach,

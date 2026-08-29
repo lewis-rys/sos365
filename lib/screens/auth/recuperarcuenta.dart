@@ -87,7 +87,6 @@ class _RecuperarCuentaState extends State<RecuperarCuenta>
     try {
       final correo = correoController.text.trim();
 
-      // 🔹 Buscar usuario
       var usuario = await MongoService.usuarios!.findOne({"correo": correo});
 
       if (usuario == null) {
@@ -95,7 +94,6 @@ class _RecuperarCuentaState extends State<RecuperarCuenta>
         return;
       }
 
-      // 🔹 Validar fecha
       DateTime fechaBD = DateTime.parse(usuario["fecha_cumpleanos"].toString());
 
       if (fechaCumple!.year != fechaBD.year ||
@@ -109,7 +107,6 @@ class _RecuperarCuentaState extends State<RecuperarCuenta>
         validado = true;
       });
 
-      // 🔹 Modal cambio contraseña
       await showDialog(
         context: context,
         builder: (context) => ScaleTransition(
@@ -173,7 +170,6 @@ class _RecuperarCuentaState extends State<RecuperarCuenta>
                     return;
                   }
 
-                  // 🔹 Actualizar contraseña
                   await MongoService.usuarios!.updateOne(
                     {"correo": correo},
                     {

@@ -8,7 +8,6 @@ import 'screens/home/home.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  /// Conectar MongoDB
   await MongoService.connect();
 
   runApp(const MyApp());

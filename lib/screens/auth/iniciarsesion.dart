@@ -4,7 +4,7 @@ import 'package:sos365/services/mongodb_service.dart';
 import 'package:sos365/screens/home/home.dart';
 import 'package:sos365/config/design_auth.dart';
 import 'crearcuenta.dart';
-import 'recuperarcuenta.dart'; // Asegúrate de tener esta pantalla creada
+import 'recuperarcuenta.dart';
 
 class IniciarSesion extends StatefulWidget {
   const IniciarSesion({super.key});
@@ -46,7 +46,6 @@ class _IniciarSesionState extends State<IniciarSesion>
     super.dispose();
   }
 
-  /// ================= INICIAR SESIÓN =================
   Future<void> iniciarSesion() async {
     if (correoController.text.isEmpty || passwordController.text.isEmpty) {
       mostrarError("Completa todos los campos");
@@ -76,7 +75,6 @@ class _IniciarSesionState extends State<IniciarSesion>
 
       final prefs = await SharedPreferences.getInstance();
 
-      // 🔥 ÚNICO CAMBIO: guardar usuario_id
       await prefs.setString("usuario_id", usuario["_id"].toHexString());
 
       await prefs.setString("correo", usuario["correo"]);
@@ -103,7 +101,6 @@ class _IniciarSesionState extends State<IniciarSesion>
     ).showSnackBar(SnackBar(content: Text(mensaje)));
   }
 
-  /// ================= INPUT FIELD =================
   Widget buildInputField(
     String label,
     TextEditingController controller, {
@@ -139,11 +136,10 @@ class _IniciarSesionState extends State<IniciarSesion>
     );
   }
 
-  /// ================= UI =================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.withOpacity(0.3), // Gris semitransparente
+      backgroundColor: Colors.grey.withOpacity(0.3),
       body: Center(
         child: ScaleTransition(
           scale: _scaleAnimation,
@@ -151,7 +147,7 @@ class _IniciarSesionState extends State<IniciarSesion>
             width: 360,
             padding: const EdgeInsets.all(28),
             decoration: BoxDecoration(
-              color: PanicColors.peach, // Fondo del modal
+              color: PanicColors.peach,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: PanicColors.primary, width: 2),
               boxShadow: const [

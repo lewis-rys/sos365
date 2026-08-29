@@ -11,41 +11,32 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # UI
   cupertino_icons: ^1.0.8
   flutter_animate: ^4.5.0
   google_fonts: ^6.0.0
   flutter_svg: ^2.1.1
 
-  # Navegación y llamadas
   url_launcher: ^6.3.0
 
-  # Base de datos y red
   mongo_dart: ^0.10.0
   http: ^1.2.0
   mailer: ^6.0.1
 
-  # Almacenamiento local
   shared_preferences: ^2.2.2
   path_provider: ^2.1.2
 
-  # Permisos
   permission_handler: ^11.3.1
 
-  # Multimedia
   camera: ^0.11.0+2
   flutter_sound: ^9.2.13
   video_player: ^2.9.2
   audioplayers: ^6.6.0
   vibration: ^2.0.1
 
-  # Mapas
   flutter_map: ^6.1.0
   latlong2: ^0.9.0
 
-  # Ubicación
   geolocator: ^12.0.0
-  # PDFs y archivos
   pdfx: ^2.9.2
   archive: ^3.4.10
 
