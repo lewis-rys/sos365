@@ -49,7 +49,6 @@ class _ProfileModalState extends State<ProfileModal> {
     super.dispose();
   }
 
-  /// ================= FORMATO FECHA =================
   String formatearFecha(DateTime fecha) {
     final y = fecha.year.toString().padLeft(4, '0');
     final m = fecha.month.toString().padLeft(2, '0');
@@ -86,7 +85,6 @@ class _ProfileModalState extends State<ProfileModal> {
     }
   }
 
-  /// ================= GUARDAR =================
   Future<void> guardarCambios() async {
     if (passwordController.text != confirmarController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -114,7 +112,6 @@ class _ProfileModalState extends State<ProfileModal> {
         throw Exception("Sesión inválida");
       }
 
-      /// 🔹 VALIDAR SI EL NUEVO CORREO YA EXISTE
       if (correoActual != emailController.text.trim()) {
         var existente = await MongoService.usuarios!.findOne({
           "correo": emailController.text.trim(),
@@ -129,7 +126,6 @@ class _ProfileModalState extends State<ProfileModal> {
         }
       }
 
-      /// 🔹 ARMAR CAMBIOS DINÁMICOS
       Map<String, dynamic> cambios = {
         "nombre_usuario": nombreController.text.trim(),
         "correo": emailController.text.trim(),
@@ -143,17 +139,14 @@ class _ProfileModalState extends State<ProfileModal> {
         cambios["fecha_cumpleanos"] = formatearFecha(fechaNacimiento!);
       }
 
-      /// 🔹 ACTUALIZAR EN BD
       await MongoService.usuarios!.updateOne(
         {"correo": correoActual},
         {"\$set": cambios},
       );
 
-      /// 🔹 ACTUALIZAR SESIÓN LOCAL
       await prefs.setString("nombre", nombreController.text.trim());
       await prefs.setString("correo", emailController.text.trim());
 
-      /// 🔹 CALLBACK
       widget.onSave(nombreController.text.trim(), emailController.text.trim());
 
       if (!mounted) return;
@@ -169,7 +162,6 @@ class _ProfileModalState extends State<ProfileModal> {
     });
   }
 
-  /// ================= INPUT =================
   Widget buildInput(
     String label,
     TextEditingController controller, {
@@ -234,7 +226,6 @@ class _ProfileModalState extends State<ProfileModal> {
     );
   }
 
-  /// ================= UI =================
   @override
   Widget build(BuildContext context) {
     return Dialog(

@@ -93,7 +93,6 @@ class _PanicButtonScreenState extends State<PanicButtonScreen>
     );
   }
 
-  // ✅ Compatible con Android e iOS — abre el marcador con el número precargado
   Future<void> llamarEmergencia() async {
     const numero = "911";
     final uri = Uri(scheme: 'tel', path: numero);

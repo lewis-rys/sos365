@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-// para navigateToReplacement
 
-/// ===== FUNCIONES DE EMERGENCIA =====
 Future<void> makeCall(String number) async {
   final uri = Uri(scheme: 'tel', path: number);
   if (await canLaunchUrl(uri)) await launchUrl(uri);
@@ -33,6 +31,3 @@ void resetSlider(
 ) {
   setState(resetValue);
 }
-
-// Se eliminaron implementaciones de modales específicos aquí porque
-// ya existen en `lib/screens/home/modals/*`. Mantener sólo utilidades.

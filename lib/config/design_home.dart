@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
-/// ================= COLORES =================
 class PanicColors {
   static const background = Color(0xFFF5F5F5);
 
-  static const primary = Color(0xFFD50000); // rojo cruz roja
-  static const primaryDark = Color(0xFFB71C1C); // rojo profundo
-  static const primaryLight = Color(0xFFFF3B3B); // rojo luminoso
+  static const primary = Color(0xFFD50000);
+  static const primaryDark = Color(0xFFB71C1C);
+  static const primaryLight = Color(0xFFFF3B3B);
 
-  static const accent = Color(0xFFFF1744); // rojo brillante
+  static const accent = Color(0xFFFF1744);
 
   static const modalBackground = Color(0xFFFFFFFF);
 
@@ -18,7 +17,6 @@ class PanicColors {
   static const menuBackground = Color(0xFFD50000);
 }
 
-/// ================= TIPOGRAFÍA =================
 class PanicTextStyles {
   static const title = TextStyle(
     fontSize: 28,
@@ -62,9 +60,7 @@ class PanicTextStyles {
   );
 }
 
-/// ================= DECORACIONES =================
 class PanicDecorations {
-  /// Slider
   static final slider = BoxDecoration(
     gradient: const LinearGradient(
       colors: [PanicColors.primaryDark, PanicColors.primary],
@@ -77,7 +73,6 @@ class PanicDecorations {
     ],
   );
 
-  /// Knob del slider
   static const knob = BoxDecoration(
     color: PanicColors.sliderKnob,
     shape: BoxShape.circle,
@@ -86,7 +81,6 @@ class PanicDecorations {
     ],
   );
 
-  /// Botón SOS
   static const emergencyButton = BoxDecoration(
     gradient: const LinearGradient(
       colors: [PanicColors.primaryDark, PanicColors.primary],
@@ -99,7 +93,6 @@ class PanicDecorations {
     ],
   );
 
-  /// Menú flotante
   static final menu = BoxDecoration(
     color: PanicColors.menuBackground,
     borderRadius: BorderRadius.circular(25),
@@ -108,7 +101,6 @@ class PanicDecorations {
     ],
   );
 
-  /// Contenedor de modales
   static final modalContainer = BoxDecoration(
     color: PanicColors.modalBackground,
     borderRadius: BorderRadius.circular(16),
@@ -117,7 +109,6 @@ class PanicDecorations {
     ],
   );
 
-  /// Tarjetas y campos
   static final card = BoxDecoration(
     color: Colors.white,
     borderRadius: BorderRadius.circular(12),
@@ -144,12 +135,10 @@ class PanicDecorations {
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
   );
 
-  /// ================= ANIMACIÓN BOTÓN SOS =================
   static Widget emergencyPulse(Widget child) {
     return Stack(
       alignment: Alignment.center,
       children: [
-        /// ARO NEÓN
         Container(
               width: 270,
               height: 270,
@@ -177,7 +166,6 @@ class PanicDecorations {
               curve: Curves.easeInOut,
             ),
 
-        /// BOTÓN
         child
             .animate(onPlay: (controller) => controller.repeat(reverse: true))
             .scale(
@@ -191,13 +179,11 @@ class PanicDecorations {
   }
 }
 
-/// ================= COMPONENTES UI =================
 class PanicDesign {
   static const background = PanicColors.background;
 
   static const screenPadding = EdgeInsets.symmetric(vertical: 20);
 
-  /// HEADER
   static Widget header(String nombreUsuario) {
     return Column(
       children: [
@@ -214,7 +200,6 @@ class PanicDesign {
     );
   }
 
-  /// SLIDER
   static Widget slider({
     required double sliderPosition,
     required double sliderWidth,
@@ -255,7 +240,6 @@ class PanicDesign {
     );
   }
 
-  /// BOTÓN SOS
   static Widget emergencyButton({required VoidCallback onLongPress}) {
     return PanicDecorations.emergencyPulse(
       GestureDetector(
@@ -277,7 +261,6 @@ class PanicDesign {
     );
   }
 
-  /// TEXTO BOTÓN
   static Widget buttonText() {
     return const Column(
       children: [
@@ -288,7 +271,6 @@ class PanicDesign {
     );
   }
 
-  /// MENÚ FLOTANTE
   static Widget floatingMenu({
     required bool isMenuOpen,
     required VoidCallback toggleMenu,
@@ -354,7 +336,6 @@ class PanicDesign {
   }
 }
 
-/// ================= MODAL BASE =================
 class ModalBase extends StatelessWidget {
   final String title;
   final Widget child;

@@ -220,9 +220,6 @@ class _HistoryModalState extends State<HistoryModal> {
   }
 }
 
-// ─────────────────────────────────────────────
-// MINI MODAL DE DETALLE DE ALERTA
-// ─────────────────────────────────────────────
 class _AlertaDetalleModal extends StatelessWidget {
   final Map<String, dynamic> alerta;
 
@@ -304,13 +301,11 @@ class _AlertaDetalleModal extends StatelessWidget {
             ),
           ],
         ),
-        // ✅ ClipRRect evita overflow visual (raya amarilla de Flutter)
         child: ClipRRect(
           borderRadius: BorderRadius.circular(20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // ── Header ───────────────────────────────────────────
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20,
@@ -339,14 +334,12 @@ class _AlertaDetalleModal extends StatelessWidget {
                 ),
               ),
 
-              // ── Contenido scrollable ──────────────────────────────
               Flexible(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Fecha
                       _seccion(
                         "FECHA Y HORA",
                         Icons.access_time,
@@ -360,7 +353,6 @@ class _AlertaDetalleModal extends StatelessWidget {
                         ),
                       ),
 
-                      // Mapa
                       if (lat != null && lng != null)
                         _seccion(
                           "UBICACIÓN",
@@ -434,7 +426,6 @@ class _AlertaDetalleModal extends StatelessWidget {
                           ),
                         ),
 
-                      // Multimedia
                       _seccion(
                         "MULTIMEDIA REGISTRADA",
                         Icons.perm_media,
@@ -471,7 +462,6 @@ class _AlertaDetalleModal extends StatelessWidget {
                 ),
               ),
 
-              // ── Footer ───────────────────────────────────────────
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20,

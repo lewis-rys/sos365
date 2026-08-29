@@ -116,7 +116,6 @@ class _CrearCuentaState extends State<CrearCuenta>
         return "$y-$m-$d $h:$mi:$s.000";
       }
 
-      /// 🔥 INSERTAR USUARIO
       var result = await MongoService.usuarios!.insertOne({
         "nombre_usuario": nombreController.text.trim(),
         "correo": correoController.text.trim(),
@@ -125,16 +124,13 @@ class _CrearCuentaState extends State<CrearCuenta>
         "fecha_registro": formatearFecha(DateTime.now()),
       });
 
-      /// 🔥 OBTENER ObjectId
       var userId = result.id;
 
-      /// 🔥 CREAR CONTACTOS VACÍO
       await MongoService.contactos!.insertOne({
         "usuario_id": userId,
         "contactos": [],
       });
 
-      /// 🔥 CREAR HISTORIAL / ALERTAS VACÍO
       await MongoService.alertas!.insertOne({
         "usuario_id": userId,
         "historial": [],
