@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sos365/services/mongodb_service.dart';
+import 'package:sos365/services/password_service.dart';
 import 'package:sos365/screens/home/home.dart';
 import 'package:sos365/config/design_auth.dart';
 import 'crearcuenta.dart';
@@ -67,7 +68,11 @@ class _IniciarSesionState extends State<IniciarSesion>
         return;
       }
 
-      if (usuario["contrasena"] != passwordController.text.trim()) {
+      final salt = usuario["contrasena_salt"]?.toString();
+      final hash = usuario["contrasena_hash"]?.toString();
+      if (salt == null ||
+          hash == null ||
+          hash != PasswordService.hash(passwordController.text.trim(), salt)) {
         mostrarError("Contraseña incorrecta");
         setState(() => cargando = false);
         return;

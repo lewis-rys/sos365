@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sos365/config/design_auth.dart';
 import 'package:sos365/services/mongodb_service.dart';
+import 'package:sos365/services/password_service.dart';
 
 class CrearCuenta extends StatefulWidget {
   const CrearCuenta({super.key});
@@ -116,10 +117,15 @@ class _CrearCuentaState extends State<CrearCuenta>
         return "$y-$m-$d $h:$mi:$s.000";
       }
 
+      final salt = PasswordService.createSalt();
       var result = await MongoService.usuarios!.insertOne({
         "nombre_usuario": nombreController.text.trim(),
         "correo": correoController.text.trim(),
-        "contrasena": passwordController.text.trim(),
+        "contrasena_hash": PasswordService.hash(
+          passwordController.text.trim(),
+          salt,
+        ),
+        "contrasena_salt": salt,
         "fecha_cumpleanos": formatearFecha(fechaNacimiento!),
         "fecha_registro": formatearFecha(DateTime.now()),
       });

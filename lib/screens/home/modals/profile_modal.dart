@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sos365/config/design_home.dart';
 import 'package:sos365/services/mongodb_service.dart';
+import 'package:sos365/services/password_service.dart';
 
 class ProfileModal extends StatefulWidget {
   final String nombre;
@@ -132,7 +133,12 @@ class _ProfileModalState extends State<ProfileModal> {
       };
 
       if (passwordController.text.isNotEmpty) {
-        cambios["contrasena"] = passwordController.text.trim();
+        final salt = PasswordService.createSalt();
+        cambios["contrasena_hash"] = PasswordService.hash(
+          passwordController.text.trim(),
+          salt,
+        );
+        cambios["contrasena_salt"] = salt;
       }
 
       if (fechaNacimiento != null) {

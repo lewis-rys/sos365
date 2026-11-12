@@ -3,8 +3,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:mailer/mailer.dart';
-import 'package:mailer/smtp_server.dart';
 import 'package:mongo_dart/mongo_dart.dart' hide State, Center;
 import 'package:geolocator/geolocator.dart';
 import 'package:camera/camera.dart';
@@ -269,74 +267,10 @@ class _AlertaModalState extends State<AlertaModal> {
 
   Future<void> _enviarCorreo(List<String> correos) async {
     if (correos.isEmpty) return;
-
-    const smtpHost = 'smtp-relay.brevo.com';
-    const smtpPort = 587;
-    const smtpUser = String.fromEnvironment('BREVO_SMTP_USER');
-    const smtpPass = String.fromEnvironment('BREVO_SMTP_PASS');
-    const senderEmail = 'sos365oficial@gmail.com';
-    const senderName = 'SOS365';
-
-    if (smtpUser.isEmpty || smtpPass.isEmpty) {
-      debugPrint('Credenciales SMTP no configuradas');
-      return;
-    }
-
-    final smtpServer = SmtpServer(
-      smtpHost,
-      port: smtpPort,
-      username: smtpUser,
-      password: smtpPass,
-      ssl: false,
-      allowInsecure: true,
+    throw StateError(
+      "El envío de correo debe realizarse desde un backend seguro; "
+      "no se permiten credenciales SMTP en la aplicación.",
     );
-
-    final List<Attachment> attachments = [];
-
-    Future<void> addAttachment(String path, String name) async {
-      try {
-        final file = File(path);
-        if (await file.exists()) {
-          attachments.add(FileAttachment(file)..fileName = name);
-        }
-      } catch (_) {}
-    }
-
-    if (multimedia["frontal"]?["foto"] != null &&
-        (multimedia["frontal"]["foto"] as String).isNotEmpty) {
-      await addAttachment(multimedia["frontal"]["foto"], "frontal.jpg");
-    }
-
-    if (multimedia["trasera"]?["foto"] != null &&
-        (multimedia["trasera"]["foto"] as String).isNotEmpty) {
-      await addAttachment(multimedia["trasera"]["foto"], "trasera.jpg");
-    }
-
-    if (multimedia["trasera"]?["video"] != null &&
-        (multimedia["trasera"]["video"] as String).isNotEmpty) {
-      await addAttachment(multimedia["trasera"]["video"], "video.mp4");
-    }
-
-    if (multimedia["audio"] != null &&
-        (multimedia["audio"] as String).isNotEmpty) {
-      await addAttachment(multimedia["audio"], "audio.aac");
-    }
-
-    final String cuerpo =
-        "Usuario en peligro: ${widget.nombreUsuario}\n"
-        "Ubicacion: ${ubicacion?.latitude}, ${ubicacion?.longitude}\n"
-        "Mapa: https://www.google.com/maps?q=${ubicacion?.latitude},${ubicacion?.longitude}\n"
-        "Hora: ${DateTime.now()}";
-
-    final message = Message()
-      ..from = Address(senderEmail, senderName)
-      ..recipients.addAll(correos.map((e) => Address(e)))
-      ..subject = "⚠️ ALERTA SOS365 - ${widget.nombreUsuario}"
-      ..text = cuerpo
-      ..attachments.addAll(attachments);
-
-    final sendReport = await send(message, smtpServer);
-    debugPrint("✅ Correo enviado via SMTP Brevo: $sendReport");
   }
 
   Future<String> _capturarFoto(CameraDescription cam, String fileName) async {

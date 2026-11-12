@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sos365/services/mongodb_service.dart';
+import 'package:sos365/services/password_service.dart';
 import 'package:sos365/config/design_auth.dart';
 import 'iniciarsesion.dart';
 
@@ -170,10 +171,14 @@ class _RecuperarCuentaState extends State<RecuperarCuenta>
                     return;
                   }
 
+                  final salt = PasswordService.createSalt();
                   await MongoService.usuarios!.updateOne(
                     {"correo": correo},
                     {
-                      "\$set": {"contrasena": nueva},
+                      "\$set": {
+                        "contrasena_hash": PasswordService.hash(nueva, salt),
+                        "contrasena_salt": salt,
+                      },
                     },
                   );
 

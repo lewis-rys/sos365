@@ -1,16 +1,16 @@
-# sos365
+# SOS365
 
-A new Flutter project.
+Aplicación Flutter de emergencia con botón de pánico y contactos rápidos.
 
-## Getting Started
+## Configuración segura
 
-This project is a starting point for a Flutter application.
+No guardes credenciales, claves API, contraseñas ni cadenas de conexión en el
+repositorio ni dentro de una aplicación distribuida.
 
-A few resources to get you started if this is your first Flutter project:
+La conexión de desarrollo puede recibir `MONGO_URI` mediante
+`--dart-define=MONGO_URI=...`. No incluyas ese valor en builds públicos:
+MongoDB y el envío de correo deben ejecutarse detrás de un backend autenticado.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Las contraseñas nuevas se almacenan como hash con salt; las cuentas antiguas
+que todavía usen el campo `contrasena` deben migrarse mediante un backend antes
+de volver a habilitarse.
